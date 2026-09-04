@@ -1,0 +1,100 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "SkillRulesConfig",
+  "description": "Reglas declarativas para el hook de sugerencia de skills en Antigravity.",
+  "type": "object",
+  "properties": {
+    "$schema": { "type": "string" },
+    "version": { "type": "string" },
+    "config": {
+      "type": "object",
+      "properties": {
+        "minScore": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Puntuación mínima para sugerir una skill (por defecto: 4)."
+        },
+        "maxSkills": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 5,
+          "description": "Máximo de skills a sugerir por mensaje (por defecto: 3)."
+        },
+        "showReasons": {
+          "type": "boolean",
+          "description": "Si es true, muestra por qué se sugiere cada skill."
+        }
+      },
+      "additionalProperties": false
+    },
+    "weights": {
+      "type": "object",
+      "properties": {
+        "keyword": { "type": "integer", "minimum": 1 },
+        "keywordPattern": { "type": "integer", "minimum": 1 },
+        "intentPattern": { "type": "integer", "minimum": 1 },
+        "pathPattern": { "type": "integer", "minimum": 1 },
+        "directoryMatch": { "type": "integer", "minimum": 1 }
+      },
+      "additionalProperties": false
+    },
+    "directoryMappings": {
+      "type": "object",
+      "additionalProperties": { "type": "string" },
+      "description": "Prefijo de directorio a nombre de skill: si el prompt menciona una ruta dentro del directorio, suma directoryMatch."
+    },
+    "skills": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "description": {
+            "type": "string",
+            "description": "Breve explicación mostrada en la sugerencia."
+          },
+          "priority": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 10,
+            "description": "Desempate cuando dos skills tienen la misma puntuación (mayor = gana)."
+          },
+          "triggers": {
+            "type": "object",
+            "properties": {
+              "keywords": {
+                "type": "array",
+                "items": { "type": "string" },
+                "description": "Búsqueda exacta (case-insensitive) como subcadena."
+              },
+              "keywordPatterns": {
+                "type": "array",
+                "items": { "type": "string" },
+                "description": "Regex para variaciones morfológicas (p. ej. \\btest(?:s|ing)?\\b)."
+              },
+              "intentPatterns": {
+                "type": "array",
+                "items": { "type": "string" },
+                "description": "Regex para verbos de acción + objeto."
+              },
+              "pathPatterns": {
+                "type": "array",
+                "items": { "type": "string" },
+                "description": "Globs para rutas de archivo mencionadas en el prompt."
+              }
+            },
+            "additionalProperties": false
+          },
+          "excludePatterns": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "Regex: si alguna coincide, la skill NO se sugiere aunque coincidan los triggers."
+          }
+        },
+        "required": ["description"],
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": ["skills"],
+  "additionalProperties": false
+}

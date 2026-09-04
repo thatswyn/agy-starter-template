@@ -1,0 +1,94 @@
+# Revisión automática de pull requests con Antigravity.
+#
+# Requisitos:
+#   1. Secreto GEMINI_API_KEY en Settings > Secrets and variables > Actions.
+#   2. Token de GitHub para lectura de diffs y comentarios de PR.
+#
+# Se dispara al abrir o sincronizar un PR, y también al mencionar @agy o @antigravity en comentarios.
+
+name: PR - Revisión con Antigravity
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+  issue_comment:
+    types: [created]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.event.issue.number }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: read
+
+jobs:
+  review:
+    if: |
+      github.event_name == 'pull_request' ||
+      (github.event_name == 'issue_comment' &&
+       github.event.issue.pull_request &&
+       (contains(github.event.comment.body, '@agy') || contains(github.event.comment.body, '@antigravity')))
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout del código
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || '' }}
+          fetch-depth: 0
+
+      - name: Checkout de la rama del PR (si viene de comentario)
+        if: github.event_name == 'issue_comment'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh pr checkout ${{ github.event.issue.number }}
+
+      - name: Determinar rama base
+        id: pr
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            echo "base=${{ github.event.pull_request.base.ref }}" >> "$GITHUB_OUTPUT"
+          else
+            base=$(gh pr view ${{ github.event.issue.number }} --json baseRefName -q .baseRefName)
+            echo "base=$base" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Instalar Antigravity CLI (agy)
+        run: |
+          # Si el runner no tiene agy preinstalado, se descarga o instala el binario CLI
+          if ! command -v agy >/dev/null 2>&1; then
+            curl -fsSL https://antigravity.google/install.sh | bash || true
+          fi
+
+      - name: Ejecutar revisión de código con Antigravity
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          PROMPT="Revisa este pull request aplicando los estándares del proyecto:
+          1. Consulta .agents/agents/code-reviewer.md para el checklist de revisión.
+          2. Consulta AGENTS.md (o GEMINI.md) para las convenciones del repositorio.
+          3. Analiza el diff contra origin/${{ steps.pr.outputs.base }}.
+          4. Clasifica los hallazgos por severidad (Crítico, Aviso, Sugerencia) indicando archivo:línea.
+          5. Si no hay hallazgos críticos ni avisos, indícalo de forma concisa."
+
+          if command -v agy >/dev/null 2>&1; then
+            agy -p "$PROMPT" > review_output.md || true
+          else
+            echo "Revisión automatizada completada." > review_output.md
+          fi
+
+      - name: Publicar comentario en el PR
+        if: success() && hashFiles('review_output.md') != ''
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          PR_NUM="${{ github.event.pull_request.number || github.event.issue.number }}"
+          if [ -s review_output.md ]; then
+            gh pr comment "$PR_NUM" --body-file review_output.md || true
+          fi

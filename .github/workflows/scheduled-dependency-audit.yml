@@ -1,0 +1,61 @@
+# Auditoría semanal de dependencias: detección de vulnerabilidades conocidas y paquetes sin mantenimiento.
+#
+# Requiere el secreto GEMINI_API_KEY.
+
+name: Programado - Auditoría de dependencias
+
+on:
+  schedule:
+    - cron: '0 9 * * 1'   # Lunes a las 09:00 UTC
+  workflow_dispatch:       # Ejecutable manualmente bajo demanda
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout del código
+        uses: actions/checkout@v4
+
+      - name: Ejecutar auditoría del gestor de paquetes nativo
+        id: audit
+        continue-on-error: true
+        run: |
+          if [ -f package.json ]; then
+            npm audit --audit-level=moderate || true
+          elif [ -f pyproject.toml ] || [ -f requirements.txt ]; then
+            pip install --quiet pip-audit && pip-audit || true
+          elif [ -f go.mod ]; then
+            go install golang.org/x/vuln/cmd/govulncheck@latest && govulncheck ./... || true
+          elif [ -f Cargo.toml ]; then
+            cargo install cargo-audit && cargo audit || true
+          else
+            echo "Sin gestor de paquetes estándar detectado."
+          fi
+
+      - name: Instalar Antigravity CLI (agy)
+        run: |
+          if ! command -v agy >/dev/null 2>&1; then
+            curl -fsSL https://antigravity.google/install.sh | bash || true
+          fi
+
+      - name: Analizar impacto real de vulnerabilidades con Antigravity
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          PROMPT="Audita las dependencias del proyecto:
+          1. Analiza el reporte de auditoría del gestor de paquetes.
+          2. Determina si el código de la aplicación utiliza efectivamente los caminos o módulos vulnerables.
+          3. Distingue avisos teóricos o menores de riesgos de seguridad auténticos en producción.
+          4. Si existe una vulnerabilidad crítica procesable con fix disponible, crea una issue con gh issue create detallando el paquete, el CVE y la versión de parche recomendada.
+          5. Si todo está en orden o son dependencias inocuas de desarrollo, no abras issues innecesarias."
+
+          if command -v agy >/dev/null 2>&1; then
+            agy -p "$PROMPT" || true
+          fi

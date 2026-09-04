@@ -1,0 +1,42 @@
+{
+  "env": {
+    "AGY_PROTECTED_BRANCHES": "main master"
+  },
+
+  "permissions": {
+    "allow": [
+      "run_command(git status:*)",
+      "run_command(git diff:*)",
+      "run_command(git log:*)",
+      "run_command(git branch:*)",
+      "run_command(git show:*)",
+      "run_command(gh pr view:*)",
+      "run_command(gh pr diff:*)",
+      "run_command(gh pr list:*)",
+      "run_command(gh issue view:*)",
+      "run_command(ls:*)",
+      "run_command(cat:*)",
+      "run_command(head:*)",
+      "run_command(tail:*)",
+      "run_command(rg:*)",
+      "run_command(find:*)",
+      "run_command(wc:*)"
+    ],
+    "ask": [
+      "run_command(git push:*)",
+      "run_command(git reset --hard:*)",
+      "run_command(gh pr create:*)",
+      "run_command(gh pr merge:*)"
+    ],
+    "deny": [
+      "view_file(./.env)",
+      "view_file(./.env.*)",
+      "view_file(./**/*.pem)",
+      "view_file(./**/*.key)",
+      "view_file(./secrets/**)",
+      "run_command(rm -rf /*)",
+      "run_command(curl:*|*sh)",
+      "run_command(git push --force:*)"
+    ]
+  }
+}

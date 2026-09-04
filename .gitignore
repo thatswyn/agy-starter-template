@@ -1,0 +1,28 @@
+# Entorno y secretos
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+secrets/
+
+# Tareas locales y temporales de Antigravity
+.agents/tasks/*
+!.agents/tasks/.gitkeep
+.agents/settings.local.json
+
+# Cachés y datos de Antigravity / Gemini
+.gemini/
+.antigravity/
+
+# Dependencias y artefactos habituales
+node_modules/
+dist/
+build/
+coverage/
+__pycache__/
+*.pyc
+.pytest_cache/
+target/
+.DS_Store
+Thumbs.db

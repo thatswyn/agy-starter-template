@@ -1,0 +1,49 @@
+# Revisión semanal programada de documentación desincronizada del código.
+# Abre una issue exclusivamente si encuentra discrepancias confirmadas.
+#
+# Requiere el secreto GEMINI_API_KEY.
+
+name: Programado - Sincronización de documentación
+
+on:
+  schedule:
+    - cron: '0 9 * * 1'   # Lunes a las 09:00 UTC
+  workflow_dispatch:       # Ejecutable manualmente bajo demanda
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  docs-sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout completo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Instalar Antigravity CLI (agy)
+        run: |
+          if ! command -v agy >/dev/null 2>&1; then
+            curl -fsSL https://antigravity.google/install.sh | bash || true
+          fi
+
+      - name: Comprobar documentación desactualizada
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          PROMPT="Busca documentación técnica que ya no coincida con el código actual:
+          1. Inspecciona los archivos modificados en los últimos 7 días: git log --since='7 days ago' --name-only --pretty=format: | sort -u
+          2. Revisa README.md, docs/, AGENTS.md y docstrings cercanos a los cambios.
+          3. Ejecuta los comandos documentados para verificar si siguen vigentes.
+          4. Reporta únicamente lo que sea INCORRECTO o erróneo, no lo que falte.
+          5. Si encuentras discrepancias, crea una issue con gh issue create titulada 'Documentación desincronizada' con tabla de archivo, línea, dice y debería decir.
+          6. Si todo está en regla, no abras ninguna issue."
+
+          if command -v agy >/dev/null 2>&1; then
+            agy -p "$PROMPT" || true
+          fi

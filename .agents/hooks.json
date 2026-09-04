@@ -1,0 +1,39 @@
+{
+  "protect-branch": {
+    "PreToolUse": [
+      {
+        "matcher": "write_to_file|replace_file_content",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "./hooks/protect-branch.sh",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  },
+  "auto-format": {
+    "PostToolUse": [
+      {
+        "matcher": "write_to_file|replace_file_content",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "./hooks/auto-format.sh",
+            "timeout": 30
+          }
+        ]
+      }
+    ]
+  },
+  "skill-eval": {
+    "PreInvocation": [
+      {
+        "type": "command",
+        "command": "./hooks/skill-eval.sh",
+        "timeout": 10
+      }
+    ]
+  }
+}

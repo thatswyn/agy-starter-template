@@ -1,0 +1,42 @@
+{
+  "//": "Servidores MCP del proyecto para Antigravity. Se comparten con quien clone el repo. Las variables ${VAR} se leen del entorno; defínelas en tu .env o shell, NUNCA pongas el token literal aquí. Activa solo los que uses: cada servidor consume contexto en cada sesión. Para desactivar uno, bórralo de este archivo.",
+
+  "mcpServers": {
+    "github": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-github"],
+      "env": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_TOKEN}"
+      }
+    },
+
+    "filesystem": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-filesystem", "."]
+    }
+  },
+
+  "//ejemplos-adicionales": "Copia el bloque que necesites dentro de mcpServers y rellena la variable en .env",
+
+  "//linear": {
+    "serverUrl": "https://mcp.linear.app/mcp"
+  },
+
+  "//sentry": {
+    "serverUrl": "https://mcp.sentry.dev/mcp"
+  },
+
+  "//notion": {
+    "serverUrl": "https://mcp.notion.com/mcp"
+  },
+
+  "//postgres": {
+    "command": "npx",
+    "args": ["-y", "@modelcontextprotocol/server-postgres", "${DATABASE_URL}"]
+  },
+
+  "//puppeteer": {
+    "command": "npx",
+    "args": ["-y", "@modelcontextprotocol/server-puppeteer"]
+  }
+}

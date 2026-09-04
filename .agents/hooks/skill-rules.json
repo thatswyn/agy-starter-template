@@ -1,0 +1,117 @@
+{
+  "$schema": "./skill-rules.schema.json",
+  "version": "1.0",
+
+  "config": {
+    "minScore": 4,
+    "maxSkills": 3,
+    "showReasons": true
+  },
+
+  "weights": {
+    "keyword": 2,
+    "keywordPattern": 3,
+    "intentPattern": 4,
+    "pathPattern": 4,
+    "directoryMatch": 5
+  },
+
+  "directoryMappings": {
+    "tests/": "testing-patterns",
+    "test/": "testing-patterns",
+    "__tests__/": "testing-patterns",
+    "spec/": "testing-patterns",
+    "docs/product/": "lean-validation",
+    ".agents/agents/": "prompt-architect",
+    ".agents/skills/": "prompt-architect",
+    ".agents/rules/": "prompt-architect"
+  },
+
+  "skills": {
+    "coding-standards": {
+      "description": "Disciplina de implementación: cambios pequeños, reversibles y revisables",
+      "priority": 6,
+      "triggers": {
+        "keywords": ["refactor", "implementa", "implementar", "escribe el código", "añade la función", "feature", "endpoint", "migración"],
+        "keywordPatterns": ["\\brefactoriz\\w+", "\\bimplement\\w+", "\\bcodifica\\w*"],
+        "intentPatterns": [
+          "(?:crea|añade|agrega|escribe|implementa|construye).{0,30}(?:función|clase|módulo|endpoint|componente|servicio)",
+          "(?:add|create|implement|build).{0,30}(?:function|class|module|endpoint|component|service)"
+        ]
+      },
+      "excludePatterns": ["\\bsolo lee\\b", "\\bno cambies\\b"]
+    },
+
+    "testing-patterns": {
+      "description": "Estrategia de tests, TDD y datos de prueba",
+      "priority": 8,
+      "triggers": {
+        "keywords": ["test", "tests", "prueba", "pruebas", "tdd", "cobertura", "coverage", "mock", "fixture", "assert"],
+        "keywordPatterns": ["\\btest(?:s|ing|ear)?\\b", "\\bprueba(?:s)?\\b", "\\bspec\\b"],
+        "pathPatterns": ["**/*.test.*", "**/*.spec.*", "**/test_*.py", "**/*_test.go", "**/tests/**", "**/__tests__/**"],
+        "intentPatterns": [
+          "(?:escribe|añade|crea|arregla).{0,20}(?:test|prueba|spec)",
+          "(?:write|add|create|fix).{0,20}(?:test|spec)"
+        ]
+      },
+      "excludePatterns": ["\\btest de mercado\\b", "\\ba\\/b test\\b"]
+    },
+
+    "systematic-debugging": {
+      "description": "Método de cuatro fases para llegar a la causa raíz en vez de parchear síntomas",
+      "priority": 9,
+      "triggers": {
+        "keywords": ["bug", "error", "falla", "fallo", "no funciona", "se rompe", "crash", "excepción", "stack trace", "debug", "depurar", "intermitente", "flaky"],
+        "keywordPatterns": ["\\bbug\\b", "\\berror(?:es)?\\b", "\\bfalla\\w*", "\\bcrash\\w*", "\\bdebug\\w*"],
+        "intentPatterns": [
+          "(?:por qué|porqué).{0,30}(?:falla|no funciona|se rompe|da error)",
+          "(?:why|what).{0,30}(?:fail|break|error|crash)",
+          "(?:arregla|corrige|soluciona|investiga).{0,25}(?:bug|error|fallo|problema)"
+        ]
+      }
+    },
+
+    "verification-agent": {
+      "description": "Verificación con evidencia ejecutada, no con lectura de código",
+      "priority": 8,
+      "triggers": {
+        "keywords": ["verifica", "verificar", "comprueba", "valida", "asegúrate de que funciona", "revisa que", "smoke test", "regresión"],
+        "keywordPatterns": ["\\bverific\\w+", "\\bcomprue\\w+", "\\bvalid\\w+", "\\bverify\\b", "\\bconfirm\\b"],
+        "intentPatterns": [
+          "(?:verifica|comprueba|confirma|asegura).{0,30}(?:funciona|correcto|pasa|ok)",
+          "(?:does|verify).{0,25}(?:it work|this work|actually)"
+        ]
+      },
+      "excludePatterns": ["\\bvalida(?:ción)? de (?:formulario|input|schema)\\b"]
+    },
+
+    "prompt-architect": {
+      "description": "Diseño de prompts, agentes, comandos y skills fiables en Antigravity",
+      "priority": 7,
+      "triggers": {
+        "keywords": ["prompt", "agente", "subagente", "skill", "slash command", "system prompt", "instrucciones del agente"],
+        "keywordPatterns": ["\\bprompt(?:s|ing)?\\b", "\\bsub-?agent\\w*", "\\bskill(?:s)?\\b"],
+        "pathPatterns": [".agents/**/*.md", "**/SKILL.md", "**/prompts/**", "AGENTS.md", "GEMINI.md"],
+        "intentPatterns": [
+          "(?:crea|escribe|mejora|ajusta).{0,25}(?:prompt|agente|skill|comando)",
+          "(?:write|improve|design).{0,25}(?:prompt|agent|skill)"
+        ]
+      }
+    },
+
+    "lean-validation": {
+      "description": "Validación de ideas de negocio: hipótesis, experimentos y métricas antes de construir",
+      "priority": 8,
+      "triggers": {
+        "keywords": ["idea de negocio", "modelo de negocio", "mercado", "competencia", "cliente objetivo", "propuesta de valor", "monetización", "pricing", "mvp", "pmf", "product market fit", "hipótesis", "validar", "canvas", "tam", "sam", "som", "unit economics", "pitch"],
+        "keywordPatterns": ["\\bnegocio\\b", "\\bmercado\\b", "\\bmvp\\b", "\\bmonetiz\\w+", "\\bpricing\\b", "\\bcompetidor\\w*"],
+        "pathPatterns": ["docs/product/**", "docs/business/**"],
+        "intentPatterns": [
+          "(?:valida|evalúa|analiza).{0,30}(?:idea|negocio|mercado|oportunidad)",
+          "(?:vale la pena|tiene sentido|merece la pena).{0,30}(?:construir|hacer|lanzar)",
+          "(?:validate|evaluate).{0,25}(?:idea|business|market)"
+        ]
+      }
+    }
+  }
+}
