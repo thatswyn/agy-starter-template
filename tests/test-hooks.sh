@@ -122,8 +122,9 @@ echo "=== 3. Validando auto-format.sh ==="
 
 # Test 3.3: Archivo real sin formateador instalado
 (
-  tmp_file="$(mktemp /tmp/test_file.XXXXXX.ts)"
-  trap 'rm -f "$tmp_file"' EXIT
+  tmp_dir="$(mktemp -d)"
+  trap 'rm -rf "$tmp_dir"' EXIT
+  tmp_file="$tmp_dir/test_file.ts"
   echo "const x = 1;" > "$tmp_file"
   payload="{\"toolCall\":{\"args\":{\"TargetFile\":\"$tmp_file\"}}}"
   out="$(echo "$payload" | bash "$HOOKS_DIR/auto-format.sh")"
@@ -158,6 +159,20 @@ if command -v node >/dev/null 2>&1; then
       fail "JSON corrupto o inválido: $(basename "$j")"
     fi
   done
+fi
+
+echo "=== 6. Presupuesto de contexto y symlinks ==="
+agents_lines="$(wc -l < "$REPO_ROOT/AGENTS.md" | tr -d ' ')"
+if [ "$agents_lines" -le 85 ]; then
+  pass "AGENTS.md respeta presupuesto de Context Tax ($agents_lines <= 85 líneas)"
+else
+  fail "AGENTS.md excede presupuesto de líneas ($agents_lines > 85 líneas)"
+fi
+
+if [ -L "$REPO_ROOT/GEMINI.md" ]; then
+  pass "GEMINI.md es un symlink válido a AGENTS.md"
+else
+  fail "GEMINI.md no es un symlink"
 fi
 
 echo "----------------------------------------"

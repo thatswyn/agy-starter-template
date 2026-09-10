@@ -104,22 +104,26 @@ echo "Configurando proyecto: $NAME"
 echo "Tipo: $TYPE | Preset: $PRESET | Responsable: $OWNER"
 echo ""
 
+if [ "$TYPE" = "business" ] && [ "$PRESET" = "custom" ]; then
+  PRESET="business"
+fi
+
 # 1. Poda de módulos según tipo de proyecto
 if [ "$TYPE" = "software" ]; then
   echo "🧹 Podando módulos de negocio innecesarios..."
   rm -f "$REPO_ROOT/.agents/agents/"{business-analyst,market-researcher,product-strategist}.md
   rm -rf "$REPO_ROOT/.agents/skills/"{lean-validation,idea}
   rm -rf "$REPO_ROOT/docs/product"
-  # Quitar lean-validation de skill-rules.json si existe jq o python
+  # Quitar lean-validation de skill-rules.json si existe Node
   if command -v node >/dev/null 2>&1; then
     node -e '
       const fs = require("fs");
-      const p = "'"$REPO_ROOT"'/.agents/hooks/skill-rules.json";
+      const p = process.argv[1];
       const data = JSON.parse(fs.readFileSync(p, "utf8"));
       delete data.skills["lean-validation"];
       delete data.directoryMappings["docs/product/"];
       fs.writeFileSync(p, JSON.stringify(data, null, 2) + "\n");
-    ' 2>/dev/null || true
+    ' "$REPO_ROOT/.agents/hooks/skill-rules.json" 2>/dev/null || true
   fi
 elif [ "$TYPE" = "business" ]; then
   echo "🧹 Podando herramientas y workflows de código..."
@@ -133,8 +137,6 @@ sed -i "s/{{TU_NOMBRE}}/$OWNER/g" "$AGENTS_MD"
 sed -i "s/{{software | idea de negocio | ambos}}/$TYPE/g" "$AGENTS_MD"
 sed -i "s/{{exploración | prototipo | validación | producción}}/exploración/g" "$AGENTS_MD"
 
-# Escapar descripción para sed
-DESC_ESC=$(printf '%s\n' "$DESC" | sed -e 's/[\/&]/\\&/g')
 python3 -c '
 import sys
 path = sys.argv[1]
@@ -222,7 +224,9 @@ esac
 # 4. Validar que la configuración JSON siga íntegra
 if [ -f "$REPO_ROOT/tests/test-hooks.sh" ]; then
   echo "🧪 Comprobando integridad del arnés..."
-  bash "$REPO_ROOT/tests/test-hooks.sh" >/dev/null 2>&1 || true
+  if ! bash "$REPO_ROOT/tests/test-hooks.sh"; then
+    echo "⚠️ Advertencia: Se detectaron fallos en la validación de hooks. Revisa la salida anterior." >&2
+  fi
 fi
 
 echo ""

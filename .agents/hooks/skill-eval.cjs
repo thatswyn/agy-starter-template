@@ -197,10 +197,17 @@ process.stdin.on('end', () => {
               break;
             }
           }
-        } catch {}
+        } catch (err) {
+          if (process.env.DEBUG) {
+            process.stderr.write(`[skill-eval] Fallo al parsear transcript (${parsed.transcriptPath}): ${err.message}\n`);
+          }
+        }
       }
     }
-  } catch {
+  } catch (err) {
+    if (process.env.DEBUG) {
+      process.stderr.write(`[skill-eval] Entrada no es JSON estructurado: ${err.message}\n`);
+    }
     prompt = input;
   }
 

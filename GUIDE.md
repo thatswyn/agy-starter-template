@@ -198,7 +198,8 @@ Vienen preconfigurados `github` y `filesystem`, y ejemplos comentados para `line
 
 ## Paso 8 — GitHub Actions (opcional)
 
-El template incluye 3 flujos de CI en `.github/workflows/`:
+El template incluye 4 flujos de CI en `.github/workflows/`:
+- `test-template.yml`: validación automatizada del arnés y hooks del template.
 - `pr-agy-review.yml`: revisión automática de diffs de pull requests.
 - `scheduled-docs-sync.yml`: revisión semanal de discrepancias entre código y documentación.
 - `scheduled-dependency-audit.yml`: auditoría semanal de vulnerabilidades en dependencias.
@@ -269,7 +270,7 @@ EXAMPLE.md                Recorrido práctico completo desde idea hasta PR
   hooks/                  Scripts de protección, formateo y evaluación
   prompts/                Plantillas para el SDK de Python de Antigravity
 .mcp.json                 Configuración de servidores MCP
-.github/workflows/        3 workflows para GitHub Actions
+.github/workflows/        4 workflows para GitHub Actions (incluyendo test-template.yml)
 docs/
   decisions/              Registros arquitectónicos (ADRs)
   product/                Contexto y validación de negocio
