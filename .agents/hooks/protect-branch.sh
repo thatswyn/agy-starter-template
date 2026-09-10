@@ -43,7 +43,7 @@ git rev-parse --is-inside-work-tree >/dev/null 2>&1 || allow
 branch="$(git branch --show-current 2>/dev/null)"
 [ -n "$branch" ] || allow   # detached HEAD: no bloqueamos
 
-protected="${AGY_PROTECTED_BRANCHES:-${CLAUDE_PROTECTED_BRANCHES:-main master}}"
+protected="${AGY_PROTECTED_BRANCHES:-main master}"
 
 for p in $protected; do
   if [ "$branch" = "$p" ]; then

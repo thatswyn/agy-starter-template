@@ -66,7 +66,17 @@ rm -rf .git && git init
 
 El template abarca proyectos de **software**, **validación de ideas de negocio**, o **ambos**. Elimina los componentes que no vayas a utilizar para optimizar el consumo de contexto del modelo.
 
-### Opción A — Automático (recomendado)
+### Opción A — Script de inicialización con Presets (más rápido, ~10 segundos)
+
+Ejecuta el asistente interactivo con presets tecnológicos listos para producción:
+
+```bash
+./scripts/init-project.sh
+```
+
+Te permitirá elegir tu tecnología (Next.js/TS, Python/FastAPI, Go, Rust o Solo Negocio), adaptará `AGENTS.md`, podará automáticamente los subagentes innecesarios y validará el arnés.
+
+### Opción B — Asistente interactivo en Antigravity
 
 Inicia Antigravity en el directorio del proyecto y lanza el comando de configuración inicial:
 
@@ -78,9 +88,9 @@ agy
 /setup mi-proyecto es {{una frase sobre qué problema resuelve}}
 ```
 
-`/setup` te formulará las preguntas imprescindibles, rellenará `AGENTS.md`, adaptará las configuraciones, eliminará los roles innecesarios y comprobará que no queden `{{PLACEHOLDERS}}` sin resolver. Luego continúa directamente en el [Paso 5](#paso-5--verificar-el-funcionamiento).
+`/setup` te guiará para seleccionar tu preset, rellenará `AGENTS.md`, adaptará las configuraciones, eliminará los roles innecesarios y comprobará que no queden `{{PLACEHOLDERS}}` sin resolver. Luego continúa directamente en el [Paso 5](#paso-5--verificar-el-funcionamiento).
 
-### Opción B — A mano
+### Opción C — A mano
 
 **Proyecto puramente técnico (software sin análisis de negocio):**
 ```bash
@@ -142,24 +152,16 @@ El hook `protect-branch.sh` impedirá que el agente edite archivos en la rama pr
 Ejecuta estas comprobaciones automáticas:
 
 ```bash
-# 1. Comprobar que los JSON de configuración son válidos
-node -e "['.agents/settings.json','.agents/hooks.json','.agents/hooks/skill-rules.json','.mcp.json'].forEach(f=>{JSON.parse(require('fs').readFileSync(f,'utf8'));console.log('OK',f)})"
+# 1. Ejecutar la suite completa de pruebas automatizada
+bash tests/test-hooks.sh
 
-# 2. Comprobar el motor de sugerencia de skills
-echo '{"prompt":"arregla el bug del login"}' | bash .agents/hooks/skill-eval.sh
-
-# 3. Comprobar el hook de protección de rama
-bash .agents/hooks/protect-branch.sh; echo "exit=$?"
-
-# 4. Comprobar que no quedan placeholders pendientes en AGENTS.md
+# 2. Comprobar que no quedan placeholders pendientes en AGENTS.md
 grep -n "{{" AGENTS.md
 ```
 
 **Resultado esperado:**
-1. Cuatro líneas `OK`.
-2. Sugerencia de la skill `systematic-debugging`.
-3. `exit=2` si estás en la rama `main` (correcto: bloquea); `exit=0` en otra rama.
-4. **Salida completamente vacía** en el grep de `AGENTS.md`.
+1. Todos los tests superados con `✅`.
+2. **Salida completamente vacía** en el grep de `AGENTS.md`.
 
 Inicia Antigravity y haz una prueba de fuego:
 ```text

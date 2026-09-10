@@ -21,9 +21,6 @@ if [ -f "$SCRIPT_DIR/lib/json.sh" ]; then
   . "$SCRIPT_DIR/lib/json.sh"
   read_hook_input
   file="$(json_get toolCall.args.TargetFile)"
-  if [ -z "$file" ]; then
-    file="$(json_get tool_input.file_path)"
-  fi
 else
   finish
 fi

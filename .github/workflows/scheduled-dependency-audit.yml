@@ -38,13 +38,18 @@ jobs:
             echo "Sin gestor de paquetes estándar detectado."
           fi
 
-      - name: Instalar Antigravity CLI (agy)
+      - name: Comprobar disponibilidad de Antigravity CLI (agy)
+        id: check-agy
         run: |
-          if ! command -v agy >/dev/null 2>&1; then
-            curl -fsSL https://antigravity.google/install.sh | bash || true
+          if command -v agy >/dev/null 2>&1; then
+            echo "available=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "⚠️ Antigravity CLI (agy) no detectado en el runner. Omitiendo análisis con IA."
+            echo "available=false" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Analizar impacto real de vulnerabilidades con Antigravity
+        if: steps.check-agy.outputs.available == 'true'
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -56,6 +61,4 @@ jobs:
           4. Si existe una vulnerabilidad crítica procesable con fix disponible, crea una issue con gh issue create detallando el paquete, el CVE y la versión de parche recomendada.
           5. Si todo está en orden o son dependencias inocuas de desarrollo, no abras issues innecesarias."
 
-          if command -v agy >/dev/null 2>&1; then
-            agy -p "$PROMPT" || true
-          fi
+          agy -p "$PROMPT" || true

@@ -185,7 +185,7 @@ process.stdin.on('end', () => {
     const parsed = JSON.parse(input);
     if (parsed.prompt) {
       prompt = parsed.prompt;
-    } else if (parsed.transcriptPath || parsed.invocationNum !== undefined) {
+    } else {
       isHookPayload = true;
       if (parsed.transcriptPath && fs.existsSync(parsed.transcriptPath)) {
         try {

@@ -58,14 +58,18 @@ jobs:
             echo "base=$base" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Instalar Antigravity CLI (agy)
+      - name: Comprobar disponibilidad de Antigravity CLI (agy)
+        id: check-agy
         run: |
-          # Si el runner no tiene agy preinstalado, se descarga o instala el binario CLI
-          if ! command -v agy >/dev/null 2>&1; then
-            curl -fsSL https://antigravity.google/install.sh | bash || true
+          if command -v agy >/dev/null 2>&1; then
+            echo "available=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "⚠️ Antigravity CLI (agy) no detectado en el runner. Configura un runner auto-hospedado con agy instalado o utiliza la GitHub Action oficial."
+            echo "available=false" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Ejecutar revisión de código con Antigravity
+        if: steps.check-agy.outputs.available == 'true'
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -77,11 +81,7 @@ jobs:
           4. Clasifica los hallazgos por severidad (Crítico, Aviso, Sugerencia) indicando archivo:línea.
           5. Si no hay hallazgos críticos ni avisos, indícalo de forma concisa."
 
-          if command -v agy >/dev/null 2>&1; then
-            agy -p "$PROMPT" > review_output.md || true
-          else
-            echo "Revisión automatizada completada." > review_output.md
-          fi
+          agy -p "$PROMPT" > review_output.md || true
 
       - name: Publicar comentario en el PR
         if: success() && hashFiles('review_output.md') != ''
