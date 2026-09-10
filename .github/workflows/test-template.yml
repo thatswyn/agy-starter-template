@@ -1,0 +1,50 @@
+name: Template CI - Validación de Hooks y Arnés
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test-harness:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout del repositorio
+        uses: actions/checkout@v4
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Comprobar sintaxis de scripts Bash
+        run: |
+          bash -n .agents/hooks/*.sh scripts/*.sh tests/*.sh
+
+      - name: Ejecutar suite de pruebas de hooks y arnés
+        run: |
+          chmod +x tests/test-hooks.sh scripts/init-project.sh
+          bash tests/test-hooks.sh
+
+      - name: Validar presupuesto de tokens en AGENTS.md (<85 líneas)
+        run: |
+          lines=$(wc -l < AGENTS.md)
+          echo "Líneas en AGENTS.md: $lines"
+          if [ "$lines" -gt 85 ]; then
+            echo "❌ AGENTS.md excede el límite de 85 líneas para control de Context Tax." >&2
+            exit 1
+          fi
+
+      - name: Validar integridad del symlink GEMINI.md
+        run: |
+          if [ ! -L GEMINI.md ]; then
+            echo "❌ GEMINI.md debe ser un symlink a AGENTS.md" >&2
+            exit 1
+          fi

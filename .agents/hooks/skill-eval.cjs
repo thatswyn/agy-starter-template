@@ -185,7 +185,7 @@ process.stdin.on('end', () => {
     const parsed = JSON.parse(input);
     if (parsed.prompt) {
       prompt = parsed.prompt;
-    } else if (parsed.transcriptPath || parsed.invocationNum !== undefined) {
+    } else {
       isHookPayload = true;
       if (parsed.transcriptPath && fs.existsSync(parsed.transcriptPath)) {
         try {
@@ -197,10 +197,17 @@ process.stdin.on('end', () => {
               break;
             }
           }
-        } catch {}
+        } catch (err) {
+          if (process.env.DEBUG) {
+            process.stderr.write(`[skill-eval] Fallo al parsear transcript (${parsed.transcriptPath}): ${err.message}\n`);
+          }
+        }
       }
     }
-  } catch {
+  } catch (err) {
+    if (process.env.DEBUG) {
+      process.stderr.write(`[skill-eval] Entrada no es JSON estructurado: ${err.message}\n`);
+    }
     prompt = input;
   }
 

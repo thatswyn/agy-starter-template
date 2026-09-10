@@ -10,7 +10,20 @@ Clonas el repositorio, ejecutas `/setup` en el chat de Antigravity, y en quince 
 
 ---
 
-## Arranque rápido
+## Arranque rápido (v2)
+
+### Opción A — Asistente CLI de un paso (recomendado)
+
+```bash
+git clone https://github.com/thatswyn/agy-starter-template mi-proyecto
+cd mi-proyecto
+./scripts/init-project.sh
+agy
+```
+
+`./scripts/init-project.sh` ofrece un menú interactivo con **Presets tecnológicos listos para producción** (Next.js, FastAPI, Go, Rust, o Solo Negocio), sustituye los comandos de `AGENTS.md`, poda automáticamente los roles innecesarios y verifica el arnés en menos de 10 segundos.
+
+### Opción B — Desde el chat de Antigravity
 
 ```bash
 git clone https://github.com/thatswyn/agy-starter-template mi-proyecto
@@ -25,8 +38,7 @@ Y dentro de la consola o chat de Antigravity:
 /setup mi-proyecto es {{una frase sobre qué problema resuelve}}
 ```
 
-`/setup` te formulará las preguntas mínimas imprescindibles, rellenará `AGENTS.md`, ajustará la configuración, podará los módulos que no apliquen a tu caso y comprobará que todo funcione sin cabos sueltos.
-Para hacerlo a mano o en detalle, consulta [GUIDE.md](./GUIDE.md).
+`/setup` te guiará para elegir el preset de tu stack, rellenará `AGENTS.md` (<80 líneas para mínimo consumo de tokens), podará módulos sobrantes y validará la suite de tests. Guía detallada en [GUIDE.md](./GUIDE.md).
 
 ---
 
@@ -72,10 +84,13 @@ Los tres hooks son **seguros y no bloqueantes si falta alguna herramienta**: sin
 
 ### 5. Y además
 
-- **`AGENTS.md` (y `GEMINI.md`)** — plantilla de contexto principal leída al inicio de cada sesión de Antigravity.
-- **3 workflows de GitHub Actions** — revisión automatizada de PRs con Antigravity, sincronización semanal de documentación y auditoría de seguridad de dependencias.
+- **`AGENTS.md` (y `GEMINI.md`)** — plantilla ultraligera (<80 líneas) leída al inicio de sesión sin saturar la ventana de tokens.
+- **Reglas por ámbito en `.agents/rules/`** — directrices que solo se activan al modificar archivos de frontend, backend, testing o seguridad.
+- **Suite de pruebas de arnés (`tests/test-hooks.sh`)** — validación automatizada de los hooks bash/node.
+- **Inicializador de proyectos (`scripts/init-project.sh`)** — configuración en 10 segundos con presets de stack.
+- **4 workflows de GitHub Actions** — validación de hooks en CI (`test-template.yml`), revisión de PRs, sincronización de docs y auditoría de seguridad.
 - **`.mcp.json` / `mcp_config.json`** — servidores MCP listos para conectar con herramientas externas (GitHub, Linear, bases de datos).
-- **Plantillas de documentos** — registros de arquitectura (ADR), one-pager de negocio y README de proyecto.
+- **Plantillas de documentos** — registros de arquitectura (ADR), one-pager de negocio y validación lean.
 - **Prompts para el SDK de Python** — plantillas en `.agents/prompts/` para agentes autónomos y orquestadores con `google-antigravity`.
 
 ---
@@ -88,29 +103,34 @@ Los tres hooks son **seguros y no bloqueantes si falta alguna herramienta**: sin
 **Iniciativa o idea de negocio:**
 `/idea` somete la iniciativa a un examen riguroso: hipótesis ordenadas por daño letal, evidencia contrastada de mercado y el experimento más económico que resuelve la incertidumbre más peligrosa. No está diseñado para adular la idea, sino para encontrar temprano el fallo que la invalidaría.
 
-Si tu proyecto corresponde a uno solo de los caminos, `/setup` poda automáticamente el resto.
+Si tu proyecto corresponde a uno solo de los caminos, `/setup` o `init-project.sh` poda automáticamente el resto.
 
 ---
 
 ## Estructura del repositorio
 
 ```text
-AGENTS.md                 Contexto principal que Antigravity lee en cada sesión
+AGENTS.md                 Contexto principal que Antigravity lee en cada sesión (<80 líneas)
 GEMINI.md                 Symlink de compatibilidad con motores Gemini / Antigravity
 GUIDE.md                  Guía de configuración paso a paso
 EXAMPLE.md                Ejemplo completo de recorrido real
+scripts/
+  init-project.sh         Inicializador CLI con presets por tecnología
+tests/
+  test-hooks.sh           Suite de pruebas automatizada para los hooks
 .agents/
   settings.json           Permisos y variables de entorno del proyecto
   hooks.json              Configuración de lifecycle hooks nativos
   agents/                 Los 9 subagentes especializados
   skills/                 Los 11 slash commands + 6 skills procedimentales
+  rules/                  Reglas por ámbito (frontend, backend, testing, security)
   hooks/                  Scripts ejecutables de protección y formateo
   prompts/                Contratos de referencia para el SDK de Antigravity
 .mcp.json                 Configuración de servidores Model Context Protocol
-.github/workflows/        3 flujos de CI con GitHub Actions
+.github/workflows/        4 flujos de CI con GitHub Actions (incluyendo test-template.yml)
 docs/
   decisions/              ADRs (Architectural Decision Records)
-  product/                Contexto y validación de negocio
+  product/                Contexto y validación de negocio (/idea)
   templates/              Plantillas de documentos base
 ```
 
